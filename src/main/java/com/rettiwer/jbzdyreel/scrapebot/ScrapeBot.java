@@ -1,15 +1,10 @@
 package com.rettiwer.jbzdyreel.scrapebot;
 
-import io.github.bonigarcia.wdm.WebDriverManager;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
-import org.openqa.selenium.By;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
-import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.chrome.ChromeOptions;
+
+import org.jsoup.nodes.Node;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,100 +16,76 @@ import java.util.List;
 public class ScrapeBot implements Runnable {
     private static final Logger log = LoggerFactory.getLogger(ScrapeBot.class);
 
-    private WebDriver webDriver;
-
     @Override
     public void run() {
-        WebDriverManager.chromedriver().setup();
-        ChromeOptions chromeOptions = new ChromeOptions();
-        //chromeOptions.setHeadless(true);
-        webDriver = new ChromeDriver(chromeOptions);
-
-
         try {
-            scrapeSinglePage(1);
-            webDriver.quit();
+            scrapeLatestPages();
+            //scrapeSinglePage(1);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
 
-/*
-    public void scrapeWholePage() {
-        try {
-            log.warn("Scraping whole page started");
+    public void scrapeLatestPages() throws IOException {
+        log.warn("Scraping latest pages started");
 
-            int pagesAmount = -1;
-            while (pagesAmount == -1) {
-                pagesAmount = scrapePagesAmount();
-            }
-
-
-
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        for (int i = 10; i > 0; i--)
+            scrapeSinglePage(i);
     }
 
-    public int scrapePagesAmount() throws IOException {
-        Document doc = Jsoup.connect("https://jbzd.com.pl/str/1").get();
-        Elements scripts = doc.select("script");
-
-        int pagesAmount = -1;
-
-        for (Element element : scripts) {
-            String content = element.toString();
-
-            if (content.contains("pages:")) {
-                String[] partA = content.split("pages:");
-                String[] partB = partA[1].split(",");
-
-                pagesAmount = Integer.parseInt(partB[0].strip());
-                log.warn("Pages amount to scrap: " + pagesAmount);
-            }
-        }
-
-        return pagesAmount;
-    }
-
- */
     public int scrapeSinglePage(int pageNumber) throws IOException {
-        webDriver.get("https://jbzd.com.pl/str/" + pageNumber);
+        log.warn("Scraping page no.: " + pageNumber);
 
-        List<WebElement> posts = webDriver.findElements(By.cssSelector("#content-container > article"));
+        Document doc = Jsoup.connect("https://jbzd.com.pl/str/" + pageNumber).get();
 
-        for (WebElement webElement : posts) {
-            scrapePost(webElement);
+        List<Element> posts = doc.select("#content-container > article");
+
+        for (Element post : posts) {
+            if (post.select(".article-locked").isEmpty()) {
+                scrapePost(post);
+            }
         }
+
         return 0;
     }
 
-    public int scrapePost(WebElement post) {
-        int id = Integer.parseInt(post.getAttribute("data-content-id"));
-        String title = post.findElement(By.cssSelector(".article-title > a")).getAttribute("innerHTML").strip();
-        String postUrl = post.findElement(By.cssSelector(".article-title > a")).getAttribute("href");
+    public int scrapePost(Element post) {
+        int id = Integer.parseInt(post.attributes().get("data-content-id"));
+        String title = post.selectFirst(".article-title > a").text().strip();
+        String postUrl = post.selectFirst(".article-title > a").attributes().get("href");
 
-        String createdAtStr = post.findElement(By.cssSelector(".article-info > span")).getAttribute("data-date");
+        log.warn(postUrl);
+
+        String createdAtStr = post.selectFirst(".article-info > span").attributes().get("data-date");
         DateTimeFormatter dTF = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         LocalDateTime lds = LocalDateTime.parse(createdAtStr, dTF);
 
+        getPostMediaType(post);
 
-        boolean isMediaVideo = !post.findElements(By.cssSelector(".video-player")).isEmpty();
-        String mediaUrl;
-        if (isMediaVideo) {
-            mediaUrl = post.findElement(By.tagName("source")).getAttribute("src");
-        }
-        else
-            mediaUrl = post.findElement(By.cssSelector(".article-image:last-child")).getAttribute("src");
+        boolean isMediaVideo = post.select(".video-player").isEmpty();
+        String mediaUrl = "";
+      /*  if (!isMediaVideo) {
+            mediaUrl = post.selectFirst("videoplyr").attributes().get("video_url");
+        } else
+            mediaUrl = post.selectFirst("img.article-image").attributes().get("src");
+*/
 
-
-        log.warn("ID " + id + "\n" +
-                    "Title " + title + "\n" +
+       /* log.warn("ID " + id + "\n" +
+                "Title " + title + "\n" +
                 "PostURL " + postUrl + "\n" +
                 "CreatedAt " + lds.toString() + "\n" +
                 "MediaUrl " + mediaUrl + "\n"
-        );
+        );*/
         return 0;
+    }
+
+    public PostMediaType getPostMediaType(Element element) {
+        Element articleContent = element.selectFirst(".article-content").lastElementChild().firstElementChild();
+
+        log.warn(articleContent.classNames().toString());
+
+
+        return PostMediaType.GALLERY;
     }
 }
