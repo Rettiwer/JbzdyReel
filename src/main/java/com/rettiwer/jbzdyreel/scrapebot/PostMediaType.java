@@ -4,5 +4,8 @@ public enum PostMediaType {
     VIDEO,
     IMAGE,
     TEXT,
-    GALLERY
+    GALLERY,
+    REMOTE,
+    NOT_DEFINED,
+    BLOCKED
 }
