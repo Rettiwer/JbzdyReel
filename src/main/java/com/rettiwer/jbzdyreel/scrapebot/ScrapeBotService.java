@@ -8,7 +8,6 @@ import org.jsoup.nodes.Element;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -30,22 +29,53 @@ public class ScrapeBotService implements Runnable {
 
     @Override
     public void run() {
-        try {
-            //Scrape 100 latest pages if repository is empty
-            if (reelRepository.findAll().isEmpty()) {
-                scrapeLatestPages();
-            }
+        while (true) {
+            try {
+                //Scrape 100 latest pages if repository is empty
+                if (reelRepository.findAll().isEmpty()) {
+                    scrapeLatestPages();
+                }
 
-            //Update memes database every 10 seconds
-            while (true) {
-                log.warn("Updating meme database...");
-                TimeUnit.SECONDS.sleep(10);
+                //Update memes database every minute
+                while (true) {
+                    updateReels();
+                    TimeUnit.MINUTES.sleep(1);
+                }
+            } catch (IOException | InterruptedException e) {
+                log.error("An unexpected error occurred: " + e);
+                log.error("Retrying in 10 seconds.");
+                try {
+                    TimeUnit.SECONDS.sleep(10);
+                } catch (InterruptedException ex) {
+                    throw new RuntimeException(ex);
+                }
             }
-        } catch (IOException | InterruptedException e) {
-            throw new RuntimeException(e);
         }
     }
 
+    public void updateReels() throws IOException {
+        List<Reel> reelsToInsert = new ArrayList<>();
+
+        int beginPage = 1;
+        boolean upToDate = false;
+        while (!upToDate) {
+            List<Reel> newReels = scrapeSinglePage(beginPage);
+
+            for (Reel reel : newReels) {
+                if (reelRepository.existsById(reel.getId())) {
+                    upToDate = true;
+                    break;
+                }
+                reelsToInsert.add(reel);
+            }
+            beginPage++;
+        }
+
+        if (!reelsToInsert.isEmpty()) {
+            reelRepository.saveAll(reelsToInsert);
+            log.warn("Added " + reelsToInsert.size() + " new reels.");
+        }
+    }
 
     public void scrapeLatestPages() throws IOException, InterruptedException {
         log.warn("Scraping latest pages started");
@@ -53,15 +83,14 @@ public class ScrapeBotService implements Runnable {
         List<Reel> scrapedPosts = new ArrayList<>();
         for (int i = 100; i > 0; i--) {
             scrapedPosts.addAll(scrapeSinglePage(i));
-            Thread.sleep(500);
+            TimeUnit.MILLISECONDS.sleep(500);
         }
-        //
-        // reelRepository.saveAll(scrapedPosts);
+
+        reelRepository.saveAll(scrapedPosts);
+        log.warn("Scraped " + scrapedPosts.size() + " reels into database.");
     }
 
     public List<Reel> scrapeSinglePage(int pageNumber) throws IOException {
-        log.warn("Scraping page no.: " + pageNumber);
-
         Document doc = Jsoup.connect("https://jbzd.com.pl/str/" + pageNumber).get();
 
         List<Element> posts = doc.select("#content-container > article");
@@ -81,8 +110,6 @@ public class ScrapeBotService implements Runnable {
         String title = post.selectFirst(".article-title > a").text().strip();
         String postUrl = post.selectFirst(".article-title > a").attributes().get("href");
 
-        log.warn(postUrl);
-
         String createdAtStr = post.selectFirst(".article-info > span").attributes().get("data-date");
         DateTimeFormatter dTF = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         LocalDateTime lds = LocalDateTime.parse(createdAtStr, dTF);
@@ -93,7 +120,7 @@ public class ScrapeBotService implements Runnable {
             case VIDEO -> mediaUrl = post.selectFirst("videoplyr").attributes().get("video_url");
         }
 
-        return new Reel(id, title, postUrl, mediaUrl, lds);
+        return new Reel(id, title, postUrl, mediaUrl, postMediaType, lds);
     }
 
     public PostMediaType getPostMediaType(Element element) {

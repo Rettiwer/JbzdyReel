@@ -1,5 +1,6 @@
 package com.rettiwer.jbzdyreel.reel;
 
+import com.rettiwer.jbzdyreel.scrapebot.PostMediaType;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -23,11 +24,16 @@ public class Reel {
     private String postUrl;
     @Column(name = "media_url")
     private String mediaUrl;
+
+    @Column(name = "media_type")
+    private PostMediaType mediaType;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
-    public Reel(String title, String postUrl, String mediaUrl, LocalDateTime createdAt) {
+    public Reel(String title, String postUrl, String mediaUrl, PostMediaType mediaType, LocalDateTime createdAt) {
         this.title = title;
         this.postUrl = postUrl;
+        this.mediaType = mediaType;
         this.mediaUrl = mediaUrl;
         this.createdAt = createdAt;
     }
