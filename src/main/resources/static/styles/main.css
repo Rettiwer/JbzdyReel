@@ -1,0 +1,164 @@
+* {
+	color: white;
+	box-sizing: border-box;
+}
+
+.only-portrait {
+	display: none;
+}
+
+.reels-bg {
+	display: none;
+}
+
+.reels-wrapper {
+	width: 100%;
+}
+
+.reels-inner {
+	position: relative;
+	z-index: 2
+}
+
+nav,
+.vol-controls {
+	position: fixed;
+	top: 0;
+	z-index: 2;
+	padding: 1em;
+}
+
+.vol-controls {
+	position: absolute;
+	right: 0;
+}
+
+.vol-controls img {
+	width: 1.5em;
+}
+
+.reels-carousel {
+	height: 100vh;
+	overflow: hidden;
+}
+
+.reel {
+	height: 100%;
+	position: relative;
+}
+
+.reel > .content {
+	height: 100%;
+	background: black;
+}
+
+
+.reel img,
+.reel .video-js {
+	height: 100%;
+	width: 100%;
+	object-fit: contain;
+}
+
+nav {
+	position: absolute;
+	left: 0;
+}
+
+.reels-inner .content-description {
+	position: absolute;
+	bottom: 0;
+	padding: 1em;
+	text-shadow: 2px 2px 5px rgba(0,0,0,0.8), 0 0 2px  rgba(0,0,0,1);
+}
+
+/*
+	Video.js only volume control
+ */
+
+.vjs-tech {
+	pointer-events: none;
+}
+
+.vjs-play-control,
+.vjs-progress-control,
+.vjs-remaining-time,
+.vjs-picture-in-picture-control,
+.vjs-fullscreen-control {
+	display: none !important;
+}
+
+.vjs-control-bar {
+	opacity: 1 !important;
+	top: 0 !important;
+	background-color: initial !important;
+}
+
+.video-js .vjs-control-bar {
+	height: 5em;
+}
+
+.vjs-button > .vjs-icon-placeholder:before {
+	font-size: 3em !important;
+}
+
+.video-js .vjs-volume-level:before {
+	font-size: 1.5em !important;
+}
+
+.video-js .vjs-volume-panel {
+	align-items: center;
+}
+
+.video-js .vjs-volume-panel.vjs-volume-panel-horizontal.vjs-hover, .video-js .vjs-volume-panel.vjs-volume-panel-horizontal:active, .video-js .vjs-volume-panel.vjs-volume-panel-horizontal.vjs-slider-active {
+	width: 0 !important;
+	 transition: width 0s;
+}
+
+.vjs-volume-tooltip {
+	display: none !important;
+}
+
+@media (min-width: 57em)  { 
+nav {
+    position: fixed;
+}
+}
+
+@media (min-width: 47em)  {
+.reels-bg {
+    display: block;
+    position: fixed;
+    width: 100%;
+    height: 100%;
+
+    background-color: #000;
+}
+
+.reels-bg > img,
+.bg-player .vjs-tech {
+    position: absolute;
+    width: 100%;
+    margin: auto;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    object-fit: contain;
+
+    -webkit-filter: blur(15px);
+    -moz-filter: blur(15px);
+    -o-filter: blur(15px);
+    -ms-filter: blur(15px);
+    filter: blur(15px);
+
+    opacity: 0.8;
+    transform: scale(2);
+}
+
+.reels-inner {
+    max-width: 46.875em;
+    margin: 0 auto;
+}
+
+}

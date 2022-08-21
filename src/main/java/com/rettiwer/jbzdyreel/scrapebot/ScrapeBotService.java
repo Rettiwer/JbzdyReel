@@ -32,7 +32,7 @@ public class ScrapeBotService implements Runnable {
         while (true) {
             try {
                 //Scrape 100 latest pages if repository is empty
-                if (reelRepository.findAll().isEmpty()) {
+                if (reelRepository.count() == 0) {
                     scrapeLatestPages();
                 }
 

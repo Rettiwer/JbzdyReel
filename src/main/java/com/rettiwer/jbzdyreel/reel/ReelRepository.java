@@ -1,6 +1,8 @@
 package com.rettiwer.jbzdyreel.reel;
 
-import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.repository.PagingAndSortingRepository;
 
-public interface ReelRepository extends JpaRepository<Reel, Long> {
+public interface ReelRepository extends PagingAndSortingRepository<Reel, Long> {
+
+
 }

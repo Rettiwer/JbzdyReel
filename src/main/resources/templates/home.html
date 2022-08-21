@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Test</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link href="https://vjs.zencdn.net/7.20.2/video-js.css" rel="stylesheet" />
+
+    <link th:href="@{/styles/reset.css}" type="text/css" rel="stylesheet">
+    <link th:href="@{/styles/main.css}" type="text/css" rel="stylesheet">
+
+    <script th:src="@{/scripts/main.js}" defer></script>
+</head>
+<body>
+<section class="only-portrait">
+    <h1>Open this page in portrait mode!</h1>
+</section>
+
+<section class="reels-bg">
+    <video class="bg-player" preload="auto" muted data-setup=''></video>
+    <img class="bg-img" src="" alt="reelBackground">
+</section>
+
+<section class="reels-wrapper">
+    <section class="reels-inner">
+        <nav class="logo">
+            <h2>Reels</h2>
+        </nav>
+
+        <section class="reels-carousel">
+        </section>
+    </section>
+</section>
+
+<script src="https://vjs.zencdn.net/7.20.2/video.min.js"></script>
+</body>
+</html>
