@@ -132,6 +132,9 @@ public class ScrapeBotService implements Runnable {
         if (!articleContent.select(".article-description").isEmpty())
             return PostMediaType.TEXT;
 
+        if (!articleContent.select(".article-elements").isEmpty())
+            return PostMediaType.NOT_DEFINED;
+
         String postType = articleContent.selectFirst(".article-image").firstElementChild()
                 .firstElementChild().nodeName();
 

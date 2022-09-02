@@ -23,7 +23,7 @@ public class SecurityConfiguration {
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception{
         httpSecurity
                 .cors().and()
-                .csrf().disable()
+                .csrf().and()
                 .authorizeHttpRequests().antMatchers("/").permitAll();
 
         return httpSecurity.build();

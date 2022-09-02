@@ -8,14 +8,12 @@
     <link href="https://vjs.zencdn.net/7.20.2/video-js.css" rel="stylesheet" />
 
     <link th:href="@{/styles/reset.css}" type="text/css" rel="stylesheet">
+    <link th:href="@{/styles/volume-bar.css}" type="text/css" rel="stylesheet">
     <link th:href="@{/styles/main.css}" type="text/css" rel="stylesheet">
 
     <script th:src="@{/scripts/main.js}" defer></script>
 </head>
 <body>
-<section class="only-portrait">
-    <h1>Open this page in portrait mode!</h1>
-</section>
 
 <section class="reels-bg">
     <video class="bg-player" preload="auto" muted data-setup=''></video>
@@ -29,6 +27,13 @@
         </nav>
 
         <section class="reels-carousel">
+            <section class="vol-controls">
+                <input class="vol-bar slider-progress" type="range">
+                <section class="vol-indicator">
+                    <img class="vol-on" th:src="@{/assets/icons/volume_up_white_24dp.svg}" style="display: none">
+                    <img class="vol-off" th:src="@{/assets/icons/volume_off_white_24dp.svg}">
+                </section>
+            </section>
         </section>
     </section>
 </section>

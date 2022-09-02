@@ -1,6 +1,6 @@
 let isScrolling = false;
 
-let volumeLevel = 1;
+let volumeLevel = 0.5;
 let isMutedVideo = true;
 
 function fadeToNewBackground(newBgSrc, isVideo) {
@@ -76,7 +76,7 @@ function scrollReel(direction) {
         return;
 
     let reels = document.querySelectorAll(".reel");
-    let reelsCarousel = document.querySelectorAll(".reels-carousel")[0];
+    let reelsCarousel = document.querySelector(".reels-carousel");
 
     let activeReelIndex = 0;
     for(activeReelIndex; activeReelIndex < reels.length; activeReelIndex++) {
@@ -126,8 +126,14 @@ function scrollReel(direction) {
         isCurrentReelVideo.player().pause();
     }
 
-    if (reels.length - (activeReelIndex + 1 ) === 1) {
+    if (reels.length - (activeReelIndex + 1) === 1) {
         loadReels();
+
+        //Remove old reels from view
+        if (reels.length > 15) {
+            for (let reelToRemove=0;reelToRemove<4;reelToRemove++)
+                reelsCarousel.removeChild(reels[reelToRemove]);
+        }
     }
 }
 
@@ -137,14 +143,11 @@ function scrollReel(direction) {
 
 */
 
-document.addEventListener("keydown", arrowKeyEvent, false);
-
 function arrowKeyEvent(e) {
-    console.log(e.keyCode);
-    if (e.keyCode === '38') {
+    if (e.keyCode === 38) {
         scrollReel(true);
     }
-    else if (e.keyCode === '40') {
+    else if (e.keyCode === 40) {
         scrollReel(false);
     }
 }
@@ -154,8 +157,6 @@ function arrowKeyEvent(e) {
     Detect mouse wheel
 
 */
-
-document.addEventListener("wheel", wheelEvent, true);
 
 let index = 0;
 
@@ -178,9 +179,6 @@ function wheelEvent(e) {
     Detect touch scroll
 
 */
-
-document.addEventListener('touchstart', handleTouchStart, false);
-document.addEventListener('touchmove', handleTouchMove, false);
 
 let xDown = null;
 let yDown = null;
@@ -225,8 +223,6 @@ function handleTouchMove(evt) {
 
 */
 
-window.addEventListener("resize", resizeEvent);
-
 let resizingTimer;
 
 function resizeEvent() {
@@ -246,6 +242,7 @@ function resizeEvent() {
  */
 
 let pageNo = 0;
+
 function loadReels() {
     fetch('/reels?pageNo=' + pageNo).then(function(response) {
         response.json().then(function(reels){
@@ -257,16 +254,15 @@ function loadReels() {
     }).catch(err => console.error(err));
 }
 
-loadReels();
-
 function generateReelImage(mediaUrl, title, time, mediaType) {
     let reelsCarousel = document.querySelector(".reels-carousel");
 
     const reel = document.createElement("article");
     reel.classList.add("reel");
 
-    if (document.querySelector(".reels-carousel").childNodes.length === 1) {
+    if (document.querySelectorAll(".reel").length === 0) {
         reel.classList.add("active");
+        fadeToNewBackground(mediaUrl, mediaType === "VIDEO");
     }
 
     const content = document.createElement("article");
@@ -283,7 +279,6 @@ function generateReelImage(mediaUrl, title, time, mediaType) {
         contentVideo.setAttribute("preload", "auto");
         contentVideo.setAttribute("autoplay", "");
         contentVideo.setAttribute("muted", "");
-        contentVideo.setAttribute("controls", "");
         contentVideo.setAttribute("loop", "");
         contentVideo.setAttribute("data-setup", "{}");
 
@@ -361,3 +356,70 @@ function timeAgo(createdAt) {
         return years + " lat temu";
 }
 
+/*
+
+    Volume bar section
+
+ */
+
+function muteUnmute() {
+    let volControls = document.querySelector('.vol-controls');
+    let volBar = document.querySelector('.vol-bar');
+    let volOn = document.querySelector('.vol-on');
+    let volOff = document.querySelector('.vol-off');
+
+    volControls.addEventListener('mouseenter', (event) => {
+        volBar.classList.add("vol-bar-hovered");
+    });
+
+    volControls.addEventListener('mouseleave', (event) => {
+        volBar.classList.remove("vol-bar-hovered");
+    });
+
+    volBar.addEventListener('input', () => {
+        volBar.style.setProperty('--value', volBar.value);
+        volumeLevel = volBar.value/100;
+
+        if (volumeLevel === 0) {
+            isMutedVideo = true;
+            volOff.style.setProperty("display", "block");
+            volOn.style.setProperty("display", "none");
+        }
+        else {
+            isMutedVideo = false;
+            volOn.style.setProperty("display", "block");
+            volOff.style.setProperty("display", "none");
+        }
+    });
+
+}
+
+function registerStyledVolumeBar() {
+    let volumeBar = document.querySelector('input[type="range"].vol-bar');
+    volumeBar.style.setProperty('--value', volumeBar.value);
+    volumeBar.style.setProperty('--min', volumeBar.min == '' ? '0' : volumeBar.min);
+    volumeBar.style.setProperty('--max', volumeBar.max == '' ? '100' : volumeBar.max);
+}
+
+function registerEvents() {
+    window.addEventListener("resize", resizeEvent);
+
+    document.addEventListener('touchstart', handleTouchStart, false);
+    document.addEventListener('touchmove', handleTouchMove, false);
+
+    document.addEventListener("wheel", wheelEvent, true);
+
+    document.addEventListener("keydown", arrowKeyEvent, false);
+}
+
+function main() {
+    registerEvents();
+
+    loadReels();
+
+    registerStyledVolumeBar();
+    muteUnmute();
+
+}
+
+main();
