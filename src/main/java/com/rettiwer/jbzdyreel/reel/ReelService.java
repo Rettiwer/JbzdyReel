@@ -16,7 +16,6 @@ public class ReelService {
     @Autowired
     private ReelRepository reelRepository;
 
-
     public List<Reel> getReelsPage(Integer pageNo)
     {
         Pageable paging = PageRequest.of(pageNo, 5, Sort.by("createdAt").descending());

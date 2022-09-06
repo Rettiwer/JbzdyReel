@@ -2,6 +2,7 @@ let isScrolling = false;
 
 let volumeLevel = 0.5;
 let isMutedVideo = true;
+let currentReelVideo;
 
 function fadeToNewBackground(newBgSrc, isVideo) {
     let reelsBg = document.querySelectorAll(".reels-bg")[0];
@@ -77,6 +78,7 @@ function scrollReel(direction) {
 
     let reels = document.querySelectorAll(".reel");
     let reelsCarousel = document.querySelector(".reels-carousel");
+    let volControls = document.querySelector('.vol-controls');
 
     let activeReelIndex = 0;
     for(activeReelIndex; activeReelIndex < reels.length; activeReelIndex++) {
@@ -99,20 +101,18 @@ function scrollReel(direction) {
 
     let nextReelVideo = nextReel.querySelector('.video-js');
     if(nextReelVideo  !== null) {
-        nextReelVideo = videojs(nextReelVideo);
-        fadeToNewBackground(nextReelVideo.currentSrc(), true);
+        currentReelVideo = videojs(nextReelVideo);
+        fadeToNewBackground(currentReelVideo.currentSrc(), true);
 
-        nextReelVideo.player().muted(isMutedVideo);
-        nextReelVideo.player().volume(volumeLevel);
+        currentReelVideo.player().muted(isMutedVideo);
+        currentReelVideo.player().volume(volumeLevel);
 
-        nextReelVideo.player().play();
+        currentReelVideo.player().play();
 
-        nextReelVideo.on('volumechange', () => {
-            volumeLevel = nextReelVideo.volume();
-            isMutedVideo = nextReelVideo.muted();
-        });
+        volControls.style.setProperty('display', 'flex');
     }
     else {
+        volControls.style.setProperty('display', 'none');
         fadeToNewBackground(nextReel.getElementsByTagName("img")[0].src, false);
     }
 
@@ -315,12 +315,12 @@ function generateReelImage(mediaUrl, title, time, mediaType) {
 
         newVideoPlayer.on('click', () => {
             isMutedVideo = !isMutedVideo;
-            newVideoPlayer.player().muted(isMutedVideo);
+            muteVideo(isMutedVideo);
         });
 
         newVideoPlayer.on('touchstart', () => {
             isMutedVideo = !isMutedVideo;
-            newVideoPlayer.player().muted(isMutedVideo);
+            muteVideo(isMutedVideo);
         });
     }
 }
@@ -362,11 +362,30 @@ function timeAgo(createdAt) {
 
  */
 
-function muteUnmute() {
-    let volControls = document.querySelector('.vol-controls');
-    let volBar = document.querySelector('.vol-bar');
+function muteVideo(isMuted) {
     let volOn = document.querySelector('.vol-on');
     let volOff = document.querySelector('.vol-off');
+    if (isMuted) {
+        volOff.style.setProperty("display", "block");
+        volOn.style.setProperty("display", "none");
+    }
+    else {
+        volOn.style.setProperty("display", "block");
+        volOff.style.setProperty("display", "none");
+    }
+
+    if (currentReelVideo !== null) {
+        currentReelVideo.player().muted(isMuted);
+    }
+}
+
+function registerStyledVolumeBar() {
+    let volControls = document.querySelector('.vol-controls');
+    let volBar = document.querySelector('.vol-bar');
+
+    volBar.style.setProperty('--value', volBar.value);
+    volBar.style.setProperty('--min', volBar.min == '' ? '0' : volBar.min);
+    volBar.style.setProperty('--max', volBar.max == '' ? '100' : volBar.max);
 
     volControls.addEventListener('mouseenter', (event) => {
         volBar.classList.add("vol-bar-hovered");
@@ -382,23 +401,17 @@ function muteUnmute() {
 
         if (volumeLevel === 0) {
             isMutedVideo = true;
-            volOff.style.setProperty("display", "block");
-            volOn.style.setProperty("display", "none");
+            muteVideo(isMutedVideo);
         }
         else {
             isMutedVideo = false;
-            volOn.style.setProperty("display", "block");
-            volOff.style.setProperty("display", "none");
+            muteVideo(isMutedVideo);
+        }
+
+        if (currentReelVideo !== null) {
+            currentReelVideo.player().volume(volumeLevel);
         }
     });
-
-}
-
-function registerStyledVolumeBar() {
-    let volumeBar = document.querySelector('input[type="range"].vol-bar');
-    volumeBar.style.setProperty('--value', volumeBar.value);
-    volumeBar.style.setProperty('--min', volumeBar.min == '' ? '0' : volumeBar.min);
-    volumeBar.style.setProperty('--max', volumeBar.max == '' ? '100' : volumeBar.max);
 }
 
 function registerEvents() {
@@ -418,8 +431,6 @@ function main() {
     loadReels();
 
     registerStyledVolumeBar();
-    muteUnmute();
-
 }
 
 main();
