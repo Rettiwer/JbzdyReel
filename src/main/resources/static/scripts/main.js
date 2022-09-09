@@ -226,6 +226,9 @@ function handleTouchMove(evt) {
 let resizingTimer;
 
 function resizeEvent() {
+    let vh = window.innerHeight * 0.01;
+    document.documentElement.style.setProperty('--vh', `${vh}px`);
+
     clearTimeout(resizingTimer);
     resizingTimer = setTimeout(function() {
         let activeReel = document.querySelectorAll(".reels-carousel .active")[0];
@@ -234,6 +237,81 @@ function resizeEvent() {
     }, 50);
 }
 
+/*
+
+    Scroll snap detect
+
+ */
+
+let timer = null;
+//Scrolling event start
+let lastScrollTop = 0;
+function scrollSnap() {
+    clearTimeout(timer);
+    //Renew timer
+    timer = setTimeout(function () {
+        let reels = document.querySelectorAll(".reel");
+        let reelsCarousel = document.querySelector(".reels-carousel");
+        let volControls = document.querySelector('.vol-controls');
+
+        let activeReelIndex = 0;
+        for(activeReelIndex; activeReelIndex < reels.length; activeReelIndex++) {
+            if(reels[activeReelIndex].classList.contains('active'))
+                break;
+        }
+
+        let nextReel;
+        let st = window.pageYOffset || document.documentElement.scrollTop;
+        console.log(st);
+        if(st > lastScrollTop)
+            nextReel = reels[activeReelIndex - 1];
+        else
+            nextReel = reels[activeReelIndex + 1];
+
+        lastScrollTop = st <= 0 ? 0 : st;
+
+        if(nextReel === undefined) {
+            return;
+        }
+
+
+        let nextReelVideo = nextReel.querySelector('.video-js');
+        if(nextReelVideo  !== null) {
+            currentReelVideo = videojs(nextReelVideo);
+            fadeToNewBackground(currentReelVideo.currentSrc(), true);
+
+            currentReelVideo.player().muted(isMutedVideo);
+            currentReelVideo.player().volume(volumeLevel);
+
+            currentReelVideo.player().play();
+
+            volControls.style.setProperty('display', 'flex');
+        }
+        else {
+            volControls.style.setProperty('display', 'none');
+            fadeToNewBackground(nextReel.getElementsByTagName("img")[0].src, false);
+        }
+
+        reels[activeReelIndex].classList.remove("active");
+        nextReel.classList.add("active");
+
+        let isCurrentReelVideo = reels[activeReelIndex].querySelector('.video-js');
+        if (isCurrentReelVideo !==  null) {
+            isCurrentReelVideo = videojs(isCurrentReelVideo);
+            isCurrentReelVideo.player().pause();
+        }
+
+        if (reels.length - (activeReelIndex + 1) === 2) {
+            loadReels();
+
+            //Remove old reels from view
+            if (reels.length > 15) {
+                for (let reelToRemove=0;reelToRemove<4;reelToRemove++)
+                    reelsCarousel.removeChild(reels[reelToRemove]);
+            }
+        }
+    }, 100);
+}
 
 /*
 
@@ -417,12 +495,15 @@ function registerStyledVolumeBar() {
 function registerEvents() {
     window.addEventListener("resize", resizeEvent);
 
-    document.addEventListener('touchstart', handleTouchStart, false);
-    document.addEventListener('touchmove', handleTouchMove, false);
+    //document.addEventListener('touchstart', handleTouchStart, false);
+    //document.addEventListener('touchmove', handleTouchMove, false);
 
     document.addEventListener("wheel", wheelEvent, true);
 
     document.addEventListener("keydown", arrowKeyEvent, false);
+
+    let reelCarousel = document.querySelector(".reels-carousel");
+    reelCarousel.addEventListener('scroll', scrollSnap);
 }
 
 function main() {
@@ -431,6 +512,10 @@ function main() {
     loadReels();
 
     registerStyledVolumeBar();
+
+    //Fix for 100vh in mobile browsers when navbar expands and hides bottom content
+    let vh = window.innerHeight * 0.01;
+    document.documentElement.style.setProperty('--vh', `${vh}px`);
 }
 
 main();

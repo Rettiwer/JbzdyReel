@@ -1,4 +1,9 @@
 @import url('https://fonts.googleapis.com/css2?family=Antonio:wght@700&family=Open+Sans:wght@300;400&display=swap');
+
+::-webkit-scrollbar {
+    display: none;
+}
+
 * {
     box-sizing: border-box;
 }
@@ -6,6 +11,7 @@
 body {
     background-color: #000;
     color: white;
+    overscroll-behavior-y: contain;
 }
 
 nav {
@@ -39,12 +45,18 @@ nav a {
 
 .reels-carousel {
     height: 100vh;
-    overflow: hidden;
+    height: calc(var(--vh, 1vh) * 100);
+    /*overflow: hidden;*/
+    overflow-y: scroll;
+    scroll-snap-type: y mandatory;
 }
 
 .reel {
     height: 100%;
     position: relative;
+
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
 }
 
 .reel > .content {
@@ -124,6 +136,16 @@ nav a {
 
         opacity: 0.8;
         transform: scale(2);
+    }
+
+    .reels-carousel {
+        overflow: hidden;
+        scroll-snap-type: none;
+    }
+
+    .reel {
+        scroll-snap-align: none;
+        scroll-snap-stop: initial;
     }
 
     .reels-inner {
