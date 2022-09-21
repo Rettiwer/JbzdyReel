@@ -226,15 +226,14 @@ function handleTouchMove(evt) {
 let resizingTimer;
 
 function resizeEvent() {
-    let vh = window.innerHeight * 0.01;
-    document.documentElement.style.setProperty('--vh', `${vh}px`);
-
-    clearTimeout(resizingTimer);
+    const doc = document.documentElement;
+    doc.style.setProperty('--app-height', `${window.innerHeight}px`)
+  /*  clearTimeout(resizingTimer);
     resizingTimer = setTimeout(function() {
         let activeReel = document.querySelectorAll(".reels-carousel .active")[0];
 
         activeReel.scrollIntoView();
-    }, 50);
+    }, 50);*/
 }
 
 /*
@@ -243,14 +242,16 @@ function resizeEvent() {
 
  */
 
-let timer = null;
 //Scrolling event start
 let lastScrollTop = 0;
-function scrollSnap() {
-    clearTimeout(timer);
+function scrollSnap(e) {
+    let atSnappingPoint = e.target.scrollTop % e.target.offsetHeight === 0;
+    let timeOut         = atSnappingPoint ? 0 : 150;
+
+    clearTimeout(e.target.scrollTimeout);
     //Renew timer
-    timer = setTimeout(function () {
-        let reels = document.querySelectorAll(".reel");
+    e.target.scrollTimeout = setTimeout(function () {
+        /*let reels = document.querySelectorAll(".reel");
         let reelsCarousel = document.querySelector(".reels-carousel");
         let volControls = document.querySelector('.vol-controls');
 
@@ -259,16 +260,16 @@ function scrollSnap() {
             if(reels[activeReelIndex].classList.contains('active'))
                 break;
         }
-
-        let nextReel;
-        let st = window.pageYOffset || document.documentElement.scrollTop;
-        console.log(st);
+*/
+        console.log('test stopped');
+      /*  let nextReel;
+        let st = reelsCarousel.scrollTop;
         if(st > lastScrollTop)
-            nextReel = reels[activeReelIndex - 1];
-        else
             nextReel = reels[activeReelIndex + 1];
+        else
+            nextReel = reels[activeReelIndex - 1];
 
-        lastScrollTop = st <= 0 ? 0 : st;
+        lastScrollTop = Math.max(st, 0);
 
         if(nextReel === undefined) {
             return;
@@ -278,7 +279,7 @@ function scrollSnap() {
         let nextReelVideo = nextReel.querySelector('.video-js');
         if(nextReelVideo  !== null) {
             currentReelVideo = videojs(nextReelVideo);
-            fadeToNewBackground(currentReelVideo.currentSrc(), true);
+           // fadeToNewBackground(currentReelVideo.currentSrc(), true);
 
             currentReelVideo.player().muted(isMutedVideo);
             currentReelVideo.player().volume(volumeLevel);
@@ -289,11 +290,13 @@ function scrollSnap() {
         }
         else {
             volControls.style.setProperty('display', 'none');
-            fadeToNewBackground(nextReel.getElementsByTagName("img")[0].src, false);
+            //fadeToNewBackground(nextReel.getElementsByTagName("img")[0].src, false);
         }
 
         reels[activeReelIndex].classList.remove("active");
         nextReel.classList.add("active");
+
+        nextReel.scrollIntoView();
 
         let isCurrentReelVideo = reels[activeReelIndex].querySelector('.video-js');
         if (isCurrentReelVideo !==  null) {
@@ -309,9 +312,30 @@ function scrollSnap() {
                 for (let reelToRemove=0;reelToRemove<4;reelToRemove++)
                     reelsCarousel.removeChild(reels[reelToRemove]);
             }
-        }
-    }, 100);
+        }*/
+    }, timeOut);
 }
+
+let options = {
+    rootMargin: "0px",
+    threshold: 0.75,
+};
+
+const callback = (entries, observer) => {
+    entries.forEach((entry) => {
+        const { target } = entry;
+
+        if (entry.intersectionRatio >= 0.75) {
+            target.classList.add("is-visible");
+            console.log("visible");
+        } else {
+            target.classList.remove("is-visible");
+            console.log("notvisible");
+        }
+    });
+};
+
+const observer = new IntersectionObserver(callback, options);
 
 /*
 
@@ -401,6 +425,8 @@ function generateReelImage(mediaUrl, title, time, mediaType) {
             muteVideo(isMutedVideo);
         });
     }
+
+    observer.observe(reel);
 }
 
 function timeAgo(createdAt) {
@@ -503,19 +529,18 @@ function registerEvents() {
     document.addEventListener("keydown", arrowKeyEvent, false);
 
     let reelCarousel = document.querySelector(".reels-carousel");
-    reelCarousel.addEventListener('scroll', scrollSnap);
+   // reelCarousel.addEventListener('scroll', scrollSnap);
 }
 
 function main() {
+    resizeEvent();
+
     registerEvents();
 
     loadReels();
 
     registerStyledVolumeBar();
 
-    //Fix for 100vh in mobile browsers when navbar expands and hides bottom content
-    let vh = window.innerHeight * 0.01;
-    document.documentElement.style.setProperty('--vh', `${vh}px`);
 }
 
 main();

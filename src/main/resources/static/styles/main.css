@@ -4,6 +4,10 @@
     display: none;
 }
 
+:root {
+    --app-height: 100%;
+}
+
 * {
     box-sizing: border-box;
 }
@@ -44,8 +48,12 @@ nav a {
 }
 
 .reels-carousel {
-    height: 100vh;
-    height: calc(var(--vh, 1vh) * 100);
+   /* position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;*/
+    height: var(--app-height);
     /*overflow: hidden;*/
     overflow-y: scroll;
     scroll-snap-type: y mandatory;
@@ -54,7 +62,6 @@ nav a {
 .reel {
     height: 100%;
     position: relative;
-
     scroll-snap-align: start;
     scroll-snap-stop: always;
 }
@@ -65,7 +72,7 @@ nav a {
 }
 
 .reel img,
-.reel .video-js {
+.reel .video-jsl {
     height: 100%;
     width: 100%;
     object-fit: contain;
